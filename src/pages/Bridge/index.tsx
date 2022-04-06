@@ -114,7 +114,7 @@ export default function BridgeForm() {
           symbol: token.symbol,
           to: account,
           tokenId: token.tokenId,
-          tokenURI: token.tokenUri
+          tokenURI: token.tokenUri || '1'
         })
       )
 
@@ -124,9 +124,11 @@ export default function BridgeForm() {
         httpRequestsList.map(promise => {
           promise
             .then(r => {
-              aggregated.push(r)
-              if (aggregated.length >= 3) {
-                resolve(aggregated.slice(0, 3))
+              if (r.data.code === 0) {
+                aggregated.push(r)
+                if (aggregated.length >= 3) {
+                  resolve(aggregated.slice(0, 3))
+                }
               }
             })
             .catch(() => {
@@ -140,13 +142,15 @@ export default function BridgeForm() {
       })
 
       const resList: AxiosResponse<ResponseType<SignatureResponse>>[] = await requestList
-      const signsList = resList.map(({ data: { data: response, code } }) => {
-        if (code === 500) {
-          return
-        }
-        return [response.signatory, response.signV, response.signR, response.signS]
-      })
-      if (signsList.length !== 3) {
+      const signsList = resList
+        .map(({ data: { data: response, code } }) => {
+          if (code === 500) {
+            return
+          }
+          return [response.signatory, response.signV, response.signR, response.signS]
+        })
+        .filter(i => i)
+      if (signsList.length < 3) {
         showModal(<MessageBox type="error">Signature request failed</MessageBox>)
         return
       }
