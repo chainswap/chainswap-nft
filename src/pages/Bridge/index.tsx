@@ -129,6 +129,12 @@ export default function BridgeForm() {
                 if (aggregated.length >= 3) {
                   resolve(aggregated.slice(0, 3))
                 }
+              } else {
+                if (error > 2) {
+                  reject('signature request fail')
+                } else {
+                  error++
+                }
               }
             })
             .catch(() => {
